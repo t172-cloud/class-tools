@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>座標獵人</title>
+<style>
+  :root {
+    --bg: #1b1d1b;
+    --chalk: #f2f0e6;
+    --dim: #6d706b;
+    --orange: #ff9a3c;
+    --hit: #ffcf5c;
+    --miss: #7a7d78;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--chalk);
+    font-family: "Segoe Print", "Comic Sans MS", "Microsoft JhengHei", sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px;
+  }
+  h1 { margin: 8px 0 4px; letter-spacing: 4px; }
+  h1 span { color: var(--orange); }
+  .hint { color: var(--dim); margin: 0 0 12px; font-size: 0.95rem; text-align: center; }
+  .status {
+    display: flex; gap: 28px; font-size: 1.3rem; margin-bottom: 10px;
+  }
+  .status b { color: var(--orange); font-size: 1.6rem; }
+  .status .danger b { color: #ff5c5c; }
+  svg { width: min(92vw, 520px); height: auto; touch-action: manipulation; }
+  .grid line { stroke: var(--dim); stroke-width: 0.03; stroke-dasharray: 0.08 0.06; }
+  .axis { stroke: var(--chalk); stroke-width: 0.06; }
+  .tick { fill: var(--chalk); font-size: 0.38px; text-anchor: middle; dominant-baseline: middle; }
+  .spot { fill: transparent; cursor: pointer; }
+  .spot:hover { fill: rgba(255, 154, 60, 0.25); }
+  .hit-dot { fill: var(--hit); stroke: var(--orange); stroke-width: 0.08; }
+  .miss-mark { stroke: var(--miss); stroke-width: 0.08; stroke-linecap: round; }
+  .reveal-dot { fill: none; stroke: var(--orange); stroke-width: 0.08; stroke-dasharray: 0.15 0.1; }
+  form { display: flex; gap: 8px; margin: 12px 0 6px; }
+  input, button {
+    font: inherit; font-size: 1.2rem;
+    background: transparent; color: var(--chalk);
+    border: 2px solid var(--chalk); border-radius: 8px;
+    padding: 6px 14px;
+  }
+  input { width: 9em; text-align: center; }
+  input:focus { outline: none; border-color: var(--orange); }
+  button { cursor: pointer; border-color: var(--orange); color: var(--orange); }
+  button:hover:not(:disabled) { background: var(--orange); color: var(--bg); }
+  button:disabled { opacity: 0.4; cursor: default; }
+  .msg { min-height: 1.6em; font-size: 1.1rem; }
+  .msg.good { color: var(--hit); }
+  .msg.bad { color: var(--miss); }
+  .result {
+    margin-top: 8px; font-size: 1.5rem; color: var(--orange); text-align: center;
+  }
+  .history { color: var(--dim); font-size: 0.95rem; max-width: 520px; text-align: center; }
+</style>
+</head>
+<body>
+  <h1>座標<span>獵人</span></h1>
+  <p class="hint">棋盤上藏了 10 個點（x、y 都在 -5 到 5）。<br>輸入座標如「2,-3」或直接點格點，60 秒內找出越多越好！</p>
+
+  <div class="status">
+    <div>⏱ <b id="time">60</b> 秒</div>
+    <div>🎯 <b id="score">0</b> / 10</div>
+  </div>
+
+  <svg id="board" viewBox="-6.2 -6.2 12.4 12.4" aria-label="直角座標棋盤"></svg>
+
+  <form id="guessForm" autocomplete="off">
+    <input id="guess" placeholder="x,y" aria-label="輸入座標">
+    <button id="shoot" type="submit">獵！</button>
+  </form>
+  <div id="msg" class="msg"></div>
+  <div id="result" class="result"></div>
+  <button id="restart" type="button">重新開始</button>
+  <p id="history" class="history"></p>
+
+<script>
+const MIN = -5, MAX = 5, TARGETS = 10, SECONDS = 60;
+const NS = 'http://www.w3.org/2000/svg';
+const board = document.getElementById('board');
+const $ = id => document.getElementById(id);
+
+let hidden, guessed, score, timeLeft, timer, playing;
+
+function el(tag, attrs, parent) {
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  (parent || board).appendChild(e);
+  return e;
+}
+// 數學座標 → SVG 座標（y 軸向上）
+const sx = x => x;
+const sy = y => -y;
+const key = (x, y) => x + ',' + y;
+
+function drawBoard() {
+  board.innerHTML = '';
+  const g = el('g', { class: 'grid' });
+  for (let i = MIN; i <= MAX; i++) {
+    if (i === 0) continue;
+    el('line', { x1: sx(i), y1: sy(MIN), x2: sx(i), y2: sy(MAX) }, g);
+    el('line', { x1: sx(MIN), y1: sy(i), x2: sx(MAX), y2: sy(i) }, g);
+  }
+  el('line', { class: 'axis', x1: MIN - 0.6, y1: 0, x2: MAX + 0.6, y2: 0 });
+  el('line', { class: 'axis', x1: 0, y1: -(MAX + 0.6), x2: 0, y2: -(MIN - 0.6) });
+  el('text', { class: 'tick', x: MAX + 0.85, y: 0 }).textContent = 'x';
+  el('text', { class: 'tick', x: 0, y: -(MAX + 0.85) }).textContent = 'y';
+  for (let i = MIN; i <= MAX; i++) {
+    if (i === 0) continue;
+    el('text', { class: 'tick', x: sx(i), y: 0.4 }).textContent = i;
+    el('text', { class: 'tick', x: -0.4, y: sy(i) }).textContent = i;
+  }
+  el('text', { class: 'tick', x: -0.3, y: 0.35 }).textContent = 'O';
+  // 可點擊的格點
+  for (let x = MIN; x <= MAX; x++) {
+    for (let y = MIN; y <= MAX; y++) {
+      const c = el('circle', { class: 'spot', cx: sx(x), cy: sy(y), r: 0.4 });
+      c.addEventListener('click', () => guess(x, y));
+    }
+  }
+  el('g', { id: 'marks' });
+}
+
+function newGame() {
+  clearInterval(timer);
+  hidden = new Set();
+  while (hidden.size < TARGETS) {
+    const x = rand(), y = rand();
+    hidden.add(key(x, y));
+  }
+  guessed = new Set();
+  score = 0;
+  timeLeft = SECONDS;
+  playing = true;
+  drawBoard();
+  $('score').textContent = 0;
+  $('time').textContent = SECONDS;
+  $('time').parentElement.classList.remove('danger');
+  $('msg').textContent = '';
+  $('msg').className = 'msg';
+  $('result').textContent = '';
+  $('history').textContent = '';
+  $('guess').disabled = false;
+  $('shoot').disabled = false;
+  $('guess').value = '';
+  $('guess').focus();
+  timer = setInterval(tick, 1000);
+}
+
+function rand() {
+  return Math.floor(Math.random() * (MAX - MIN + 1)) + MIN;
+}
+
+function tick() {
+  timeLeft--;
+  $('time').textContent = timeLeft;
+  if (timeLeft <= 10) $('time').parentElement.classList.add('danger');
+  if (timeLeft <= 0) endGame('時間到！');
+}
+
+function parseGuess(text) {
+  // 接受 2,-3 / (2,-3) / 2 -3 / 全形逗號與負號
+  const t = text.replace(/[（）()]/g, '').replace(/，/g, ',').replace(/[－—–]/g, '-').trim();
+  const m = t.match(/^(-?\d+)\s*[,\s]\s*(-?\d+)$/);
+  if (!m) return null;
+  return [parseInt(m[1], 10), parseInt(m[2], 10)];
+}
+
+function guess(x, y) {
+  if (!playing) return;
+  const msg = $('msg');
+  if (x < MIN || x > MAX || y < MIN || y > MAX) {
+    msg.textContent = `(${x}, ${y}) 超出棋盤囉，x、y 都要在 -5 到 5 之間`;
+    msg.className = 'msg bad';
+    return;
+  }
+  const k = key(x, y);
+  if (guessed.has(k)) {
+    msg.textContent = `(${x}, ${y}) 已經猜過了`;
+    msg.className = 'msg bad';
+    return;
+  }
+  guessed.add(k);
+  const marks = document.getElementById('marks');
+  if (hidden.has(k)) {
+    score++;
+    $('score').textContent = score;
+    el('circle', { class: 'hit-dot', cx: sx(x), cy: sy(y), r: 0.28 }, marks);
+    msg.textContent = `命中 (${x}, ${y})！+1`;
+    msg.className = 'msg good';
+    if (score === TARGETS) endGame('全部找到了！');
+  } else {
+    const d = 0.18;
+    el('line', { class: 'miss-mark', x1: sx(x) - d, y1: sy(y) - d, x2: sx(x) + d, y2: sy(y) + d }, marks);
+    el('line', { class: 'miss-mark', x1: sx(x) - d, y1: sy(y) + d, x2: sx(x) + d, y2: sy(y) - d }, marks);
+    msg.textContent = `(${x}, ${y}) 沒有東西`;
+    msg.className = 'msg bad';
+  }
+  $('history').textContent = '已猜：' + [...guessed].map(s => `(${s.replace(',', ', ')})`).join(' ');
+}
+
+function endGame(reason) {
+  playing = false;
+  clearInterval(timer);
+  $('guess').disabled = true;
+  $('shoot').disabled = true;
+  // 揭曉沒找到的點
+  const marks = document.getElementById('marks');
+  hidden.forEach(k => {
+    if (guessed.has(k)) return;
+    const [x, y] = k.split(',').map(Number);
+    el('circle', { class: 'reveal-dot', cx: sx(x), cy: sy(y), r: 0.3 }, marks);
+  });
+  $('result').textContent = `${reason} 得分：${score} / ${TARGETS}`;
+}
+
+$('guessForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const p = parseGuess($('guess').value);
+  if (!p) {
+    $('msg').textContent = '格式不對喔，請輸入像「2,-3」這樣';
+    $('msg').className = 'msg bad';
+  } else {
+    guess(p[0], p[1]);
+  }
+  $('guess').value = '';
+  $('guess').focus();
+});
+$('restart').addEventListener('click', newGame);
+
+newGame();
+</script>
+</body>
+</html>
