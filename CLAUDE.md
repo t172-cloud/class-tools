@@ -17,6 +17,7 @@
 ## 工具清單
 （之後加新工具時會自動更新）
 - [座標獵人](tools/coordinate-hunter/)：直角座標練習小遊戲（11×11 格點、60 秒找出 10 個隱藏點）— https://t172-cloud.github.io/class-tools/tools/coordinate-hunter/
+- [八年級第一次段考（互動版）](tools/grade8-exam1/)：1-1 乘法公式～2-1 平方根與近似值，21 題選擇／填充／計算題，即時批改與解析 — https://t172-cloud.github.io/class-tools/tools/grade8-exam1/
 
 ## 工作注意事項
 - 學生資料一律去識別化（只用座號 + 班級代號）

@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>八年級數學第一次段考（互動版）</title>
+<style>
+:root{--bg:#f4f6fb;--card:#fff;--ink:#1f2937;--sub:#6b7280;--pri:#4f46e5;--ok:#16a34a;--okbg:#dcfce7;--bad:#dc2626;--badbg:#fee2e2;--line:#e5e7eb}
+@media (prefers-color-scheme:dark){:root{--bg:#111827;--card:#1f2937;--ink:#f3f4f6;--sub:#9ca3af;--line:#374151;--okbg:#14532d;--badbg:#7f1d1d}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;font-size:18px;line-height:1.7}
+header{position:sticky;top:0;z-index:10;background:var(--pri);color:#fff;padding:10px 16px;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;justify-content:space-between}
+header h1{font-size:18px;margin:0}
+header .st{font-size:15px;display:flex;gap:16px;flex-wrap:wrap}
+main{max-width:860px;margin:0 auto;padding:16px}
+.intro{background:var(--card);border-radius:12px;padding:14px 18px;margin-bottom:16px;border:1px solid var(--line);font-size:16px}
+.intro input{font-size:16px;padding:4px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+h2{font-size:20px;margin:28px 0 10px;padding-left:10px;border-left:6px solid var(--pri)}
+.q{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:14px}
+.q.done{border-color:var(--ok)}
+.q.fail{border-color:#f59e0b}
+.qh{display:flex;gap:8px;align-items:flex-start}
+.num{background:var(--pri);color:#fff;border-radius:8px;min-width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-weight:700;flex:none}
+.pts{color:var(--sub);font-size:14px;margin-left:auto;flex:none}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+@media(max-width:600px){.opts{grid-template-columns:1fr}}
+.opt{text-align:left;font:inherit;background:var(--bg);color:var(--ink);border:2px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--pri)}
+.opt.right{background:var(--okbg);border-color:var(--ok)}
+.opt.wrong{background:var(--badbg);border-color:var(--bad)}
+.part{margin:10px 0 4px;padding-top:6px}
+.part+.part{border-top:1px dashed var(--line)}
+input.ans{font:inherit;width:min(100%,320px);padding:6px 10px;border:2px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+input.ans.s{width:90px;text-align:center}
+input.ans.ok{background:var(--okbg);border-color:var(--ok)}
+input.ans.no{background:var(--badbg);border-color:var(--bad);animation:sh .3s}
+@keyframes sh{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.btn{font:inherit;font-size:16px;border:0;border-radius:8px;padding:6px 16px;cursor:pointer;margin:6px 6px 0 0}
+.btn.p{background:var(--pri);color:#fff}
+.btn.g{background:var(--line);color:var(--ink)}
+.btn:disabled{opacity:.5;cursor:default}
+.chip{font:inherit;border:2px solid var(--pri);background:var(--bg);color:var(--ink);border-radius:20px;padding:4px 14px;margin:4px 6px 4px 0;cursor:pointer}
+.chip.used{opacity:.4;pointer-events:none}
+.fb{margin-top:8px;font-size:16px;min-height:1px}
+.fb.ok{color:var(--ok);font-weight:700}
+.fb.no{color:var(--bad);font-weight:700}
+.sol{background:var(--bg);border-left:5px solid #f59e0b;border-radius:6px;padding:8px 14px;margin-top:10px;font-size:16px;display:none}
+.sol.show{display:block}
+.sol b{color:var(--pri)}
+sup{font-size:.7em;line-height:0}
+.rt{white-space:nowrap}.ov{border-top:1.5px solid currentColor;padding:0 2px}
+.fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;line-height:1.2;margin:0 2px;font-size:.9em}
+.fr>span:first-child{border-bottom:1.5px solid currentColor;padding:0 3px}
+.hint{color:var(--sub);font-size:14px}
+#result{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:16px;z-index:20}
+#result.show{display:flex}
+#result .box{background:var(--card);border-radius:16px;padding:24px;max-width:420px;width:100%;text-align:center}
+#result .big{font-size:56px;font-weight:800;color:var(--pri)}
+</style>
+</head>
+<body>
+<header>
+  <h1>📘 八年級數學　資源班第一次段考（互動版）</h1>
+  <div class="st"><span>已作答 <b id="stDone">0</b>/21</span><span>目前得分 <b id="stScore">0</b>/100</span><button class="btn g" id="finish" style="margin:0;padding:2px 12px">看成績</button></div>
+</header>
+<main>
+  <div class="intro">範圍：1-1 乘法公式～2-1 平方根與近似值。<br>
+    選擇題直接點選項；填充、計算題輸入答案後按 <b>Enter</b> 或「檢查」。算錯可以再試，不會扣分。<br>
+    <span class="hint">數學符號輸入：平方請打 <code>x^2</code>，根號可直接比大小；分數打 <code>5/4</code>；正負打 <code>±</code>。</span></div>
+  <div id="root"></div>
+</main>
+<div id="result"><div class="box"><div>你的得分</div><div class="big"><span id="rScore">0</span><small style="font-size:24px"> / 100</small></div><p id="rMsg"></p><button class="btn p" id="rAgain">重做一次</button><button class="btn g" id="rClose">關閉</button></div></div>
+
+<script>
+/* ===== 題目資料（可自行修改）=====
+ t: mc 選擇 / num 數字 / poly 多項式 / set 一組數值 / nums 多格數字 / order 排序
+ 文字標記：x^2 → 上標、√24 / √[2^4×3^2] → 根號、{25/16} → 分數 */
+const SECTIONS=['一、選擇題（每題 4 分，共 40 分）','二、填充題（每題 5 分，共 30 分）','三、計算題（共 30 分，先自己算，再輸入答案核對）'];
+const Q=[
+{n:1,s:0,pts:4,text:'下列哪一個等式正確？',parts:[{t:'mc',o:['(x+3)^2 = x^2 + 9','(x−4)^2 = x^2 − 8x + 16','(x+5)(x−5) = x^2 + 25','(2x+1)^2 = 4x^2 + 1'],a:1}],sol:'<b>差的平方</b>：(a−b)^2 = a^2 − 2ab + b^2，所以 (x−4)^2 = x^2 − 8x + 16。<br>A 少了中間項 6x；C 應為 x^2 − 25；D 少了中間項 4x。'},
+{n:2,s:0,pts:4,text:'利用乘法公式計算 102 × 98 的值為何？',parts:[{t:'mc',o:['9984','9904','10004','9996'],a:3}],sol:'102 × 98 = (100+2)(100−2) = 100^2 − 2^2 = 10000 − 4 = <b>9996</b>。'},
+{n:3,s:0,pts:4,text:'(3x+2)^2 展開後為何？',parts:[{t:'mc',o:['9x^2 + 4','9x^2 + 6x + 4','9x^2 + 12x + 4','3x^2 + 12x + 4'],a:2}],sol:'(3x)^2 + 2×3x×2 + 2^2 = 9x^2 + <b>12x</b> + 4。'},
+{n:4,s:0,pts:4,text:'關於多項式 2x^3 − 5x + 8，下列敘述哪一個正確？',parts:[{t:'mc',o:['一次項係數為 −5','常數項為 −8','次數為 2','二次項係數為 2'],a:0}],sol:'一次項是 −5x，係數 −5。常數項是 +8；最高次項 2x^3，次數 3；沒有二次項（係數 0）。'},
+{n:5,s:0,pts:4,text:'(3x^2+5x−2) − (x^2−2x+4) 的結果為何？',parts:[{t:'mc',o:['2x^2 + 3x + 2','2x^2 + 7x + 2','2x^2 + 7x − 6','4x^2 + 3x − 6'],a:2}],sol:'去括號要變號：3x^2+5x−2 − x^2 + 2x − 4 = <b>2x^2 + 7x − 6</b>。'},
+{n:6,s:0,pts:4,text:'將 3x − x^3 + 2 − 4x^2 依降冪排列，結果為何？',parts:[{t:'mc',o:['2 + 3x − 4x^2 − x^3','−x^3 + 3x − 4x^2 + 2','−4x^2 − x^3 + 3x + 2','−x^3 − 4x^2 + 3x + 2'],a:3}],sol:'降冪＝次數由大到小：−x^3、−4x^2、3x、2。'},
+{n:7,s:0,pts:4,text:'(−2x^3)^2 的結果為何？',parts:[{t:'mc',o:['4x^6','4x^5','−4x^6','−2x^6'],a:0}],sol:'(−2)^2 = 4；(x^3)^2 = x^6（指數相乘）。答案 <b>4x^6</b>。'},
+{n:8,s:0,pts:4,text:'(x+2)(x^2−3x+1) 展開後為何？',parts:[{t:'mc',o:['x^3 − 5x^2 + x + 2','x^3 − x^2 − 5x + 2','x^3 + 5x^2 − 5x + 2','x^3 − x^2 − 6x + 2'],a:1}],sol:'x(x^2−3x+1) = x^3 − 3x^2 + x；2(x^2−3x+1) = 2x^2 − 6x + 2。<br>合併：x^3 − x^2 − 5x + 2。'},
+{n:9,s:0,pts:4,text:'(12x^3−8x^2+4x) ÷ 4x 的結果為何？',parts:[{t:'mc',o:['3x^3 − 2x^2 + x','3x^2 − 2x','3x^2 − 2x + 1','3x^2 − 2x + 4'],a:2}],sol:'每一項都除以 4x：12x^3÷4x = 3x^2；−8x^2÷4x = −2x；4x÷4x = 1。'},
+{n:10,s:0,pts:4,text:'下列敘述哪一個正確？',parts:[{t:'mc',o:['16 的平方根是 4','−√16 = −4','√16 = ±4','−9 的平方根是 −3'],a:1}],sol:'√16 表示「正的平方根」＝4，所以 −√16 = −4。16 的平方根有兩個：±4；負數沒有平方根。'},
+
+{n:11,s:1,pts:5,text:'計算 1001^2 ＝ ？',parts:[{t:'num',a:1002001}],sol:'(1000+1)^2 = 1000^2 + 2×1000×1 + 1 = 1000000 + 2000 + 1 = <b>1002001</b>。'},
+{n:12,s:1,pts:5,text:'利用平方差公式計算 73^2 − 27^2 ＝ ？',parts:[{t:'num',a:4600}],sol:'(73+27)(73−27) = 100 × 46 = <b>4600</b>。'},
+{n:13,s:1,pts:5,text:'(2x^2−x+3) + (−5x^2+4x−1) ＝ ？',hint:'例如：-3x^2+2x+1',parts:[{t:'poly',a:{2:-3,1:3,0:2}}],sol:'x^2：2 + (−5) = −3；x：−1 + 4 = 3；常數：3 + (−1) = 2。答案 <b>−3x^2 + 3x + 2</b>。'},
+{n:14,s:1,pts:5,text:'已知多項式 A 除以 x + 2，商式為 x − 3，餘式為 4，則 A ＝ ？',hint:'被除式 ＝ 除式 × 商式 ＋ 餘式',parts:[{t:'poly',a:{2:1,1:-1,0:-2}}],sol:'A = (x+2)(x−3) + 4 = x^2 − x − 6 + 4 = <b>x^2 − x − 2</b>。'},
+{n:15,s:1,pts:5,text:'{25/16} 的平方根為 ？',hint:'有兩個答案，例如：±3/4',parts:[{t:'set',a:[1.25,-1.25]}],sol:'25 = 5^2，16 = 4^2，所以平方根是 <b>±{5/4}</b>。'},
+{n:16,s:1,pts:5,text:'√37 介於連續整數 □ 與 □ 之間。',parts:[{t:'nums',a:[6,7]}],sol:'6^2 = 36、7^2 = 49，36 < 37 < 49，所以 6 < √37 < 7。答案 <b>6 與 7</b>。'},
+
+{n:17,s:2,pts:6,text:'利用乘法公式計算下列各題：',parts:[
+ {l:'(1) 197^2（3 分）',t:'num',a:38809,p:3},{l:'(2) 203 × 197（3 分）',t:'num',a:39991,p:3}],
+ sol:'(1) 197^2 = (200−3)^2 = 40000 − 1200 + 9 = <b>38809</b>。<br>(2) 203×197 = (200+3)(200−3) = 200^2 − 3^2 = 40000 − 9 = <b>39991</b>。'},
+{n:18,s:2,pts:6,text:'展開下列各式：',parts:[
+ {l:'(1) (2x−5)^2（3 分）',t:'poly',a:{2:4,1:-20,0:25},p:3},{l:'(2) (3x+2)(3x−2)（3 分）',t:'poly',a:{2:9,0:-4},p:3}],
+ sol:'(1) (2x)^2 − 2×2x×5 + 5^2 = <b>4x^2 − 20x + 25</b>。<br>(2) 和差公式：(3x)^2 − 2^2 = <b>9x^2 − 4</b>。'},
+{n:19,s:2,pts:6,text:'化簡 (x+3)(x−2) − (x−1)^2 ＝ ？',parts:[{t:'poly',a:{1:3,0:-7}}],
+ sol:'(x+3)(x−2) = x^2 + x − 6；(x−1)^2 = x^2 − 2x + 1。<br>相減（括號變號）：x^2 + x − 6 − x^2 + 2x − 1 = <b>3x − 7</b>。'},
+{n:20,s:2,pts:6,text:'求 (2x^3−x^2−4x+6) ÷ (x−1) 的商式與餘式。',parts:[
+ {l:'商式',t:'poly',a:{2:2,1:1,0:-3},p:3},{l:'餘式',t:'num',a:3,p:3}],
+ sol:'直式（或綜合除法，用 x = 1）：係數 2、−1、−4、6 → 2、1、−3、餘 3。<br>商式 <b>2x^2 + x − 3</b>，餘式 <b>3</b>。<br>驗算：(x−1)(2x^2+x−3)+3 = 2x^3−x^2−4x+6 ✓'},
+{n:21,s:2,pts:6,text:'回答下列各題：',parts:[
+ {l:'(1) 求 √[2^4×3^2] 的值（3 分）',t:'num',a:12,p:3},
+ {l:'(2) 比較 5、√24、√27 的大小，由小到大依序點選（3 分）',t:'order',items:['5','√24','√27'],a:['√24','5','√27'],p:3}],
+ sol:'(1) √[2^4×3^2] = 2^2 × 3 = 4 × 3 = <b>12</b>。<br>(2) 5 = √25，比較 24 < 25 < 27，所以 <b>√24 < 5 < √27</b>。'}
+];
+
+/* ===== 工具 ===== */
+const $=(s,r=document)=>r.querySelector(s);
+function fmt(s){
+  return String(s)
+   .replace(/\^(-?\d+)/g,'<sup>$1</sup>')
+   .replace(/√\[(.*?)\]/g,'<span class="rt">√<span class="ov">$1</span></span>')
+   .replace(/√(\d+)/g,'<span class="rt">√<span class="ov">$1</span></span>')
+   .replace(/\{(\d+)\/(\d+)\}/g,'<span class="fr"><span>$1</span><span>$2</span></span>');
+}
+function norm(s){
+  const sup={'⁰':'^0','¹':'^1','²':'^2','³':'^3','⁴':'^4','⁵':'^5','⁶':'^6'};
+  return String(s).replace(/[０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0))
+    .replace(/[Ａ-Ｚａ-ｚ]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0))
+    .replace(/[⁰¹²³⁴⁵⁶]/g,c=>sup[c]).replace(/[−－–—]/g,'-').replace(/＋/g,'+').replace(/[＋]/g,'+')
+    .replace(/[×·*＊\s　]/g,'').replace(/，/g,',').replace(/／/g,'/').replace(/[＾]/g,'^').replace(/Ｘ|X/g,'x').replace(/±|＋－|\+-/g,'±');
+}
+function toNum(s){ s=norm(s); if(s==='')return NaN; if(/^-?\d+(\.\d+)?\/-?\d+(\.\d+)?$/.test(s)){const [a,b]=s.split('/');return +a/+b} return /^-?\d+(\.\d+)?$/.test(s)?+s:NaN }
+function parsePoly(s){
+  s=norm(s).replace(/\(|\)/g,''); if(!s)return null;
+  const terms=s.match(/[+-]?[^+-]+/g); if(!terms||terms.join('')!==s)return null;
+  const m={};
+  for(const t of terms){
+    const r=t.match(/^([+-]?)(\d*)(x?)(?:\^?(\d+))?$/); if(!r)return null;
+    let [,sg,c,x,e]=r; if(!x&&e)return null; if(!c&&!x)return null;
+    const coef=(sg==='-'?-1:1)*(c===''?1:+c); const ex=x?(e?+e:1):0;
+    m[ex]=(m[ex]||0)+coef;
+  }
+  return m;
+}
+function polyEq(m,a){ if(!m)return false; const ks=new Set([...Object.keys(m),...Object.keys(a)]); for(const k of ks){ if((m[k]||0)!==(a[k]||0))return false } return true }
+function valueSet(s){
+  s=norm(s); if(!s)return null; let vals=[];
+  if(s.startsWith('±')){const v=toNum(s.slice(1)); if(isNaN(v))return null; vals=[v,-v]}
+  else{ for(const p of s.split(/,|、|或/)){const v=toNum(p); if(isNaN(v))return null; vals.push(v)} }
+  return vals.sort((a,b)=>a-b);
+}
+
+/* ===== 狀態與音效 ===== */
+let state={}; // n -> {done:bool, got:{partIndex:true}, tries}
+let ac=null,sound=true;
+function beep(ok){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)(); if(ac.state==='suspended')ac.resume();
+  const seq=ok?[523,659,784]:[220]; seq.forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.type=ok?'sine':'triangle';o.frequency.value=f;g.gain.value=.08;o.connect(g);g.connect(ac.destination);o.start(ac.currentTime+i*.1);o.stop(ac.currentTime+i*.1+.12)})}catch(e){}}
+
+/* ===== 建立畫面 ===== */
+const root=$('#root');
+function build(){
+  state={}; root.innerHTML='';
+  SECTIONS.forEach((title,si)=>{
+    const h=document.createElement('h2');h.textContent=title;root.appendChild(h);
+    Q.filter(q=>q.s===si).forEach(q=>root.appendChild(card(q)));
+  });
+  update();
+}
+function card(q){
+  const st=state[q.n]={got:{},given:false,wrong:0};
+  const el=document.createElement('div');el.className='q';el.id='q'+q.n;
+  el.innerHTML=`<div class="qh"><div class="num">${q.n}</div><div style="flex:1">${fmt(q.text)}</div><div class="pts">${q.pts} 分</div></div>`;
+  q.parts.forEach((p,pi)=>{
+    const d=document.createElement('div');d.className='part';
+    if(p.l)d.innerHTML+=`<div>${fmt(p.l)}</div>`;
+    const fb=document.createElement('div');fb.className='fb';
+    if(p.t==='mc'){
+      const w=document.createElement('div');w.className='opts';
+      p.o.forEach((o,i)=>{const b=document.createElement('button');b.className='opt';b.innerHTML=`<b>(${'ABCD'[i]})</b> ${fmt(o)}`;
+        b.onclick=()=>{ if(st.got[pi])return;
+          if(i===p.a){b.classList.add('right');st.got[pi]=true;w.querySelectorAll('.opt').forEach(x=>x.disabled=true);fb.className='fb ok';fb.textContent='✓ 正確！';beep(1);done(q)}
+          else{b.classList.add('wrong');b.disabled=true;st.wrong++;fb.className='fb no';fb.textContent='再想想看，換一個選項。';beep(0)}};
+        w.appendChild(b)});
+      d.appendChild(w);
+    }else if(p.t==='order'){
+      const picked=[];const box=document.createElement('div');const line=document.createElement('div');line.style.margin='6px 0';line.textContent='你的排序：';
+      const reset=document.createElement('button');reset.className='btn g';reset.textContent='重選';
+      const draw=()=>{line.innerHTML='你的排序：'+picked.map(fmt).join(' < ')};
+      p.items.forEach(it=>{const c=document.createElement('button');c.className='chip';c.innerHTML=fmt(it);
+        c.onclick=()=>{ if(st.got[pi])return; picked.push(it);c.classList.add('used');draw();
+          if(picked.length===p.items.length){ if(picked.join()===p.a.join()){st.got[pi]=true;fb.className='fb ok';fb.textContent='✓ 正確！';beep(1);done(q)}
+            else{st.wrong++;fb.className='fb no';fb.textContent='順序不對，按「重選」再試。';beep(0)}}};
+        box.appendChild(c)});
+      reset.onclick=()=>{ if(st.got[pi])return; picked.length=0;box.querySelectorAll('.chip').forEach(c=>c.classList.remove('used'));draw();fb.textContent=''};
+      d.appendChild(box);d.appendChild(line);d.appendChild(reset);
+    }else{
+      const n=p.t==='nums'?2:1; const ins=[];
+      const row=document.createElement('div');
+      for(let k=0;k<n;k++){const i=document.createElement('input');i.className='ans'+(p.t==='nums'?' s':'');i.type='text';i.autocomplete='off';i.setAttribute('inputmode','text');i.placeholder=p.t==='nums'?(k?'後一個':'前一個'):(p.t==='poly'?'輸入式子':'輸入答案');
+        i.addEventListener('keydown',e=>{ if(e.isComposing||e.keyCode===229)return; if(e.key==='Enter'){e.preventDefault();chk()} });
+        ins.push(i);row.appendChild(i);if(k<n-1)row.append(' 與 ')}
+      const btn=document.createElement('button');btn.className='btn p';btn.textContent='檢查';
+      const chk=()=>{ if(st.got[pi])return;
+        if(ins.some(i=>!i.value.trim())){fb.className='fb no';fb.textContent='⚠️ 請先填入答案。';return}
+        let ok=false;
+        if(p.t==='num'){const v=toNum(ins[0].value);ok=!isNaN(v)&&Math.abs(v-p.a)<1e-9}
+        else if(p.t==='nums'){ok=ins.every((i,k)=>toNum(i.value)===p.a[k])}
+        else if(p.t==='poly'){ok=polyEq(parsePoly(ins[0].value),p.a)}
+        else if(p.t==='set'){const v=valueSet(ins[0].value);const A=[...p.a].sort((a,b)=>a-b);ok=!!v&&v.length===A.length&&v.every((x,k)=>Math.abs(x-A[k])<1e-9)}
+        if(ok){st.got[pi]=true;ins.forEach(i=>{i.classList.remove('no');i.classList.add('ok');i.disabled=true});btn.disabled=true;fb.className='fb ok';fb.textContent='✓ 正確！';beep(1);done(q)}
+        else{st.wrong++;ins.forEach(i=>{i.classList.remove('no');void i.offsetWidth;i.classList.add('no')});fb.className='fb no';fb.textContent=p.t==='set'?'再檢查一次：平方根有幾個？':'再算算看，需要時按「看解析」。';beep(0)}};
+      btn.onclick=chk;row.appendChild(btn);d.appendChild(row);
+      if(q.hint&&pi===0&&q.parts.length===1){const h=document.createElement('div');h.className='hint';h.textContent='輸入格式：'+q.hint;d.appendChild(h)}
+    }
+    d.appendChild(fb);el.appendChild(d);
+  });
+  const sb=document.createElement('button');sb.className='btn g';sb.textContent='💡 看解析';
+  const sol=document.createElement('div');sol.className='sol';sol.innerHTML=fmt(q.sol);
+  sb.onclick=()=>{sol.classList.toggle('show'); if(sol.classList.contains('show')&&!isDone(q)){st.given=true;el.classList.add('fail');update()}};
+  el.appendChild(sb);el.appendChild(sol);
+  q._el=el;q._sol=sol;
+  return el;
+}
+const isDone=q=>q.parts.every((p,i)=>state[q.n].got[i]);
+function done(q){ if(isDone(q)){q._el.classList.remove('fail');q._el.classList.add('done');q._sol.classList.add('show')} update() }
+function score(){ let s=0; Q.forEach(q=>{ const st=state[q.n]; if(q.parts.length===1){ if(st.got[0])s+=q.pts }
+  else q.parts.forEach((p,i)=>{ if(st.got[i])s+=p.p }) }); return s }
+function update(){ $('#stDone').textContent=Q.filter(q=>isDone(q)).length; $('#stScore').textContent=score() }
+$('#finish').onclick=()=>{ const s=score();$('#rScore').textContent=s;
+  $('#rMsg').textContent=s>=90?'太棒了！幾乎全對 🎉':s>=60?'不錯！把有看解析的題目再練一次。':'沒關係，從看過解析的題目再練習一次。';
+  $('#result').classList.add('show')};
+$('#rClose').onclick=()=>$('#result').classList.remove('show');
+$('#rAgain').onclick=()=>{$('#result').classList.remove('show');build();scrollTo(0,0)};
+build();
+</script>
+</body>
+</html>
